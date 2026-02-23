@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quête des Stands – Point Animations</title>
+<style>
+body{
+  font-family:Arial,sans-serif;
+  background:radial-gradient(circle at top,#2a0033,#0b0010);
+  color:white;
+  text-align:center;
+  padding:20px;
+}
+.box{
+  max-width:420px;
+  margin:auto;
+  background:rgba(0,0,0,0.65);
+  padding:22px;
+  border-radius:18px;
+  box-shadow:0 0 25px rgba(255,95,210,0.25);
+}
+h1,h2{
+  color:#ff5fd2;
+  text-shadow:0 0 8px rgba(255,95,210,0.6);
+}
+.stand-image{
+  width:100%;
+  max-width:360px;
+  margin:15px auto;
+  border-radius:14px;
+  box-shadow:0 0 20px rgba(255,95,210,0.35);
+}
+input{
+  width:80%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:20px;
+  border:none;
+  text-align:center;
+}
+button{
+  margin-top:14px;
+  padding:12px 22px;
+  background:linear-gradient(135deg,#ff5fd2,#b84dff);
+  border:none;
+  border-radius:30px;
+  font-weight:bold;
+  color:black;
+  cursor:pointer;
+}
+button:hover{ transform:scale(1.05); }
+.success{ color:#6bffb0; margin-top:12px; }
+.error{ color:#ff6b6b; margin-top:12px; }
+.mission-complete{
+  font-size:28px;
+  font-weight:bold;
+  color:#6bffb0;
+  text-shadow:0 0 8px #6bffb0,0 0 16px #6bffb0,0 0 24px #6bffb0;
+  animation:pulse 1.2s infinite alternate;
+  margin-top:20px;
+}
+@keyframes pulse{
+  from{transform:scale(1);opacity:0.7;}
+  to{transform:scale(1.08);opacity:1;}
+}
+</style>
+</head>
+<body>
+<div class="box">
+<h1 id="title">Quête des Stands</h1>
+<div id="content"></div>
+</div>
+<script>
+/* ========================= RESET CACHÉ ========================= */
+const title = document.getElementById("title");
+let pressTimer;
+title.addEventListener("mousedown",startReset);
+title.addEventListener("touchstart",startReset);
+title.addEventListener("mouseup",cancelReset);
+title.addEventListener("mouseleave",cancelReset);
+title.addEventListener("touchend",cancelReset);
+function startReset(){
+  pressTimer=setTimeout(()=>{
+    localStorage.removeItem("progress");
+    localStorage.removeItem("startTime");
+    alert("Progression réinitialisée");
+    location.reload();
+  },3000);
+}
+function cancelReset(){ clearTimeout(pressTimer); }
+
+/* ========================= TIMER MIN 10 MIN ========================= */
+const MIN_TIME = 10 * 60 * 1000;
+let startTime = localStorage.getItem("startTime");
+if(!startTime){
+  startTime = Date.now();
+  localStorage.setItem("startTime",startTime);
+}else{
+  startTime = parseInt(startTime);
+}
+
+/* ========================= IMAGE ACCUEIL ========================= */
+const presentationImage="images/presentation.png";
+
+/* ========================= STANDS ========================= */
+const stands=[
+{ title:"Point Animations", text:"🎤✨ Joue à la Quête des Stands ! ✨🎤\n\nPars explorer les stands et réponds à leurs énigmes." },
+{ title:"Stand 1 – United Glowsticks", question:"Mon premier est une plante, mon second est l'argot pour dire vêtement, mon troisième est le contraire d'amour, mon tout est le petit lapin d'UGS?", answers:["usapen","Usapen", "USAPEN"] },
+{ title:"Stand 2 – Karaté Dojo", question:"Combien de médailles nationales a obtenu le Karaté Dojo Marseillais depuis sa création en 2014 ?", answers:["20","vingt"] },
+{ title:"Stand 3 – ASSL Provence", question:"Quelle est la méthode de combat de l'ASSL Provence ?", answers:["combat intuitif","intuitif", "Intuitif", "INTUITIF", "Combat intuitif", "COMBAT INTUITIF"] },
+{ title:"Stand 4 – Game Academy", question:"Combien de formations Game Academy propose ?", answers:["6","six","Six", "SIX"] },
+{ title:"Stand 5 – Animaniak", question:"En quelle année a été créée l'association Animaniak ?", answers:["2016"] },
+{ title:"Stand 6 – Chinafi", question:"Quand porte-t-on le yukata ?", answers:["ete","été", "l'été", "Eté", "Ete", "Été", "Éte", "ETE", "ÉTÉ"] },
+{ title:"Stand 7 – Chuuren Potos Mahjong", question:"Comment appelle-t-on les pièces du Mahjong ?", answers:["tuiles", "Tuiles", "TUILES", "tuile", "TUILE", "Tuile"] },
+{ title:"Stand 8 – Doud dans le rétro", question:"Quelle est la plus ancienne console présente sur le stand Doud dans le rétro ?", answers:["mega drive","sega mega drive", "Mega drive", "Sega mega drive", "MEGA DRIVE", "SEGA MEGA DRIVE"] },
+{ title:"Stand 9 – Sardin Ki'in - Jeu de GO", question:"Dans une partie exposée au stand jeu de GO, comptez les points de chacun des joueurs, qui gagne ?", answers:["Blanc", "blanc", "BLANC"] },
+{ title:"Stand 10 – Iokai Shiatsu", question:"Que veut dire littéralement shiatsu ?", answers:["Pression des doigts", "pression des doigts", "PRESSION DES DOIGTS"] },
+{ title:"Stand 11 – Forge Je'daii", question:"De quel jeu vidéo s'inspire la technologie BattleSword présente sur le stand Forge Je'daii ?", answers:["Street Fighter","Street fighter","STREET FIGHTER"] },
+{ title:"Stand 12 – K-AMI Origami", question:"Quand est apparu l'origami récréatif ?", answers:["17","17e","17eme","xvii", "XVII", "17ème", "17E", "17EME"] }
+];
+
+/* ========================= SAUVEGARDE ========================= */
+let progress=parseInt(localStorage.getItem("progress"))||0;
+let current=progress;
+const content=document.getElementById("content");
+
+/* ========================= NORMALISATION ========================= */
+function normalize(text){
+return text.toLowerCase()
+.normalize("NFD")
+.replace(/[\u0300-\u036f]/g,"")
+.trim();
+}
+
+/* ========================= RENDER ========================= */
+function render(){
+if(current>=stands.length){
+  const elapsed = Date.now() - startTime;
+  if(elapsed < MIN_TIME){
+    const remaining = Math.ceil((MIN_TIME - elapsed)/60000);
+    content.innerHTML = `
+<p class="error">
+    ⛔ On ne la fait pas à Chibi Dino, pris la main dans le sac petit tricheur ! 😈<br><br>
+    Retourne au Point Animations pour recommencer.<br>
+</p>
+<img src="images/holmes.png" class="stand-image">
+`;
+    return;
+  }
+  content.innerHTML=`
+<div class="mission-complete">
+  MISSION COMPLETE
+</div>
+<p class="success">
+  🎉 Bravo !<br><br>
+  Présente cet écran au staff du Point Animations.
+</p>`;
+  return;
+}
+const stand=stands[current];
+if(!stand.question){
+content.innerHTML=`
+<h2>${stand.title}</h2>
+<img src="${presentationImage}" class="stand-image">
+<p>${stand.text.replace(/\n/g,"<br>")}</p>
+<button onclick="next()">Commencer</button>`;
+return;
+}
+content.innerHTML=`
+<h2>${stand.title}</h2>
+<p>${stand.question}</p>
+<input id="answer" placeholder="Ta réponse">
+<br>
+<button onclick="check()">Valider</button>
+<div id="message"></div>`;
+}
+
+/* ========================= CHECK ========================= */
+function check(){
+const answer=document.getElementById("answer");
+const message=document.getElementById("message");
+const user=normalize(answer.value);
+const validAnswers=stands[current].answers.map(a=>normalize(a));
+const ok=validAnswers.some(a=>user.includes(a));
+if(ok){
+progress=current+1;
+localStorage.setItem("progress",progress);
+message.innerHTML=`
+<p class="success">Bonne réponse !</p>
+<button onclick="next()">Continuer ➜</button>`;
+}else{
+message.innerHTML=`<p class="error">Mauvaise réponse, observe bien le stand 👀</p>`;
+}
+}
+
+/* ========================= NEXT ========================= */
+function next(){
+current++;
+render();
+}
+
+/* ========================= START ========================= */
+render();
+</script>
+</body>
+</html>
