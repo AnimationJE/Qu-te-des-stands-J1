@@ -112,12 +112,12 @@ const stands=[
 { title:"Stand E037 – Game Academy", question:"Combien de formations Game Academy propose ?", answers:["6","six","Six", "SIX"] },
 { title:"Stand E182 – Animaniak", question:"En quelle année a été créée l'association Animaniak ?", answers:["2016"] },
 { title:"Stand E198 – Chinafi", question:"Quand porte-t-on le yukata ?", answers:["ete","été", "éte", "l'été", "Ete", "Été", "Éte", "L'été", "ETE", "ÉTÉ", "ÉTE", "L'ETE", "L'ÉTÉ"] },
-{ title:"Stand E192 – Chuuren Potos Mahjong", question:"Comment appelle-t-on les pièces du Mahjong ?", answers:["tuiles", "Tuiles", "TUILES", "tuile", "TUILE", "Tuile"] },
+{ title:"Stand E192 – Chuuren Potos Mahjong", question:"Que représente le nom du club Churren Potos ?", answers:["Une combinaison du mahjong", "une combinaison du mahjong", "combinaison du mahjong", "combinaison", "mahjong"] },
 { title:"Stand D038 – Doud dans le rétro", question:"Quelle est la plus ancienne console présente sur le stand Doud dans le rétro ?", answers:["mega drive","sega mega drive", "Mega drive", "Sega mega drive", "Mega Drive", "Sega Mega drive", "Sega Mega Drive", "MEGA DRIVE", "SEGA MEGA DRIVE"] },
 { title:"Stand E195 – Sardin Ki'in - Jeu de GO", question:"Dans une partie exposée au stand jeu de GO, comptez les points de chacun des joueurs, qui gagne ?", answers:["Blanc", "blanc", "BLANC", "Blancs", "Les blancs", "LES BLANCS", "Les blancs", "Les Blancs", "LES BLANCS"] },
 { title:"Stand E157 – Iokai Shiatsu", question:"Que veut dire littéralement shiatsu ?", answers:["Pression des doigts", "pression des doigts", "PRESSION DES DOIGTS", "pression des doigts"] },
-{ title:"Stand K150 – Forge Je'daii", question:"De quel jeu vidéo s'inspire la technologie BattleSword présente sur le stand Forge Je'daii ?", answers:["Street Fighter","Street fighter","STREET FIGHTER"] },
-{ title:"Stand E173 – K-AMI Origami", question:"Quand est apparu l'origami récréatif ?", answers:["17","17e","17eme","xvii", "XVII", "17ème", "17E", "17EME", "17Eme"] }
+{ title:"Stand K150 – Forge Je'daii", question:"De quel jeu vidéo s'inspire la technologie BattleSword présente sur le stand Forge Je'daii ?", answers:["Street Fighter","Street fighter","STREET FIGHTER", "street fighter"] },
+{ title:"Stand E173 – K-AMI Origami", question:"Quand est apparu l'origami récréatif ?", answers:["17","17e","17eme","xvii", "xviie", "XVII", "XVIIe", "17ème", "17E", "17EME", "17Eme", "17e siècle", "17eme siècle", "xviie siècle", "XVIIE siècle"] }
 ];
 
 /* ========================= SAUVEGARDE ========================= */
@@ -127,10 +127,33 @@ const content=document.getElementById("content");
 
 /* ========================= NORMALISATION ========================= */
 function normalize(text){
-return text.toLowerCase()
+return text
+.toLowerCase()
 .normalize("NFD")
-.replace(/[\u0300-\u036f]/g,"")
+.replace(/[\u0300-\u036f]/g,"") // retire accents
+.replace(/[^a-z0-9\s]/g,"") // retire ponctuation
+.replace(/\s+/g," ") // espaces multiples
 .trim();
+}
+function levenshtein(a, b) {
+const matrix = [];
+for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+for (let i = 1; i <= b.length; i++) {
+  for (let j = 1; j <= a.length; j++) {
+    if (b[i - 1] === a[j - 1]) {
+      matrix[i][j] = matrix[i - 1][j - 1];
+    } else {
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j - 1] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j] + 1
+      );
+    }
+  }
+}
+return matrix[b.length][a.length];
 }
 
 /* ========================= RENDER ========================= */
@@ -181,8 +204,19 @@ function check(){
 const answer=document.getElementById("answer");
 const message=document.getElementById("message");
 const user=normalize(answer.value);
+
 const validAnswers=stands[current].answers.map(a=>normalize(a));
-const ok=validAnswers.some(a=>user.includes(a));
+
+const ok=validAnswers.some(a=>{
+  // égalité
+  if(user === a) return true;
+  // contient
+  if(user.includes(a)) return true;
+  // tolérance fautes (max 2 caractères d'erreur)
+  if(levenshtein(user,a) <= 2) return true;
+  return false;
+});
+
 if(ok){
 progress=current+1;
 localStorage.setItem("progress",progress);
@@ -206,6 +240,7 @@ render();
 </body>
 
 </html>
+
 
 
 
