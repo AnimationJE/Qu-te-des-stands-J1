@@ -106,17 +106,17 @@ const presentationImage="images/presentation.png";
 /* ========================= STANDS ========================= */
 const stands=[
 { title:"Point Animations", text:"🎤✨ Joue à la Quête des Stands ! ✨🎤\n\nPars explorer les stands et réponds à leurs énigmes." },
-{ title:"Stand L178 – United Glowsticks", question:"Mon premier est une plante, mon second est l'argot pour dire vêtement, mon troisième est le contraire d'amour, mon tout est le petit lapin d'UGS?", answers:["Usapen] },
+{ title:"Stand L178 – United Glowsticks", question:"Mon premier est une plante, mon second est l'argot pour dire vêtement, mon troisième est le contraire d'amour, mon tout est le petit lapin d'UGS?", answers:["Usapen"] },
 { title:"Stand L135 – Karaté Dojo", question:"Combien de médailles nationales a obtenu le Karaté Dojo Marseillais depuis sa création en 2014 ?", answers:["20","vingt"] },
 { title:"Stand J150 – ASSL Provence", question:"Quelle est la méthode de combat de l'ASSL Provence ?", answers:["combat intuitif"] },
 { title:"Stand E037 – Game Academy", question:"Combien de formations Game Academy propose ?", answers:["6","six"] },
 { title:"Stand E182 – Animaniak", question:"En quelle année a été créée l'association Animaniak ?", answers:["2016"] },
-{ title:"Stand E198 – Chinafi", question:"Quand porte-t-on le yukata ?", answers:["été] },
+{ title:"Stand E198 – Chinafi", question:"Quand porte-t-on le yukata ?", answers:["été"] },
 { title:"Stand E192 – Chuuren Potos Mahjong", question:"Que représente le nom du club Churren Potos ?", answers:["combinaison du mahjong"] },
 { title:"Stand D038 – Doud dans le rétro", question:"Quelle est la plus ancienne console présente sur le stand Doud dans le rétro ?", answers:["sega mega drive"] },
-{ title:"Stand E195 – Sardin Ki'in - Jeu de GO", question:"Dans une partie exposée au stand jeu de GO, comptez les points de chacun des joueurs, qui gagne ?", answers:["Blanc"] },
+{ title:"Stand E195 – Sardin Ki'in - Jeu de GO", question:"Dans une partie exposée au stand jeu de GO, comptez les points de chacun des joueurs, qui gagne ?", answers:["clanc"] },
 { title:"Stand E157 – Iokai Shiatsu", question:"Que veut dire littéralement shiatsu ?", answers:["pression des doigts"] },
-{ title:"Stand K150 – Forge Je'daii", question:"De quel jeu vidéo s'inspire la technologie BattleSword présente sur le stand Forge Je'daii ?", answers:["Street Fighter"] },
+{ title:"Stand K150 – Forge Je'daii", question:"De quel jeu vidéo s'inspire la technologie BattleSword présente sur le stand Forge Je'daii ?", answers:["street fighter"] },
 { title:"Stand E173 – K-AMI Origami", question:"Quand est apparu l'origami récréatif ?", answers:["17","XVII"] }
 ];
 
@@ -200,11 +200,16 @@ content.innerHTML=`
 }
 
 /* ========================= CHECK ========================= */
+
 function check(){
 const answer=document.getElementById("answer");
 const message=document.getElementById("message");
 const user=normalize(answer.value);
-
+  
+if(!user){
+  message.innerHTML=`<p class="error">Entre une réponse 😉</p>`;
+  return;
+}
 const validAnswers=stands[current].answers.map(a=>normalize(a));
 
 const ok=validAnswers.some(a=>{
@@ -213,7 +218,7 @@ const ok=validAnswers.some(a=>{
   // contient
   if(user.includes(a)) return true;
   // tolérance fautes (max 2 caractères d'erreur)
-  if(levenshtein(user,a) <= 2) return true;
+ if(levenshtein(user,a) <= Math.max(1, Math.floor(a.length * 0.3))) return true;
   return false;
 });
 
@@ -227,7 +232,7 @@ message.innerHTML=`
 message.innerHTML=`<p class="error">Mauvaise réponse, observe bien le stand 👀</p>`;
 }
 }
-
+  
 /* ========================= NEXT ========================= */
 function next(){
 current++;
@@ -240,6 +245,7 @@ render();
 </body>
 
 </html>
+
 
 
 
